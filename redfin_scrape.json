@@ -1,0 +1,115 @@
+{
+  "properties": [
+    {
+      "address": "N7052 County Rd W",
+      "city": "Mount Calvary",
+      "zip_code": "53057",
+      "sold_price": 351000,
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "square_footage": 2053,
+      "property_type": "",
+      "sold_date": "2026-01-02"
+    },
+    {
+      "address": "W1796 Puddlefort St",
+      "city": "Mount Calvary",
+      "zip_code": "53057",
+      "sold_price": 155000,
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "square_footage": 1229,
+      "property_type": "",
+      "sold_date": "2025-12-19"
+    },
+    {
+      "address": "313 Church St",
+      "city": "Mount Calvary",
+      "zip_code": "53057",
+      "sold_price": 300000,
+      "bedrooms": 4,
+      "bathrooms": 2.5,
+      "square_footage": 1944,
+      "property_type": "",
+      "sold_date": "2026-02-12"
+    },
+    {
+      "address": "W8806 Hickory Dr",
+      "city": "Glenbeulah",
+      "zip_code": "53023",
+      "sold_price": 408000,
+      "bedrooms": 3,
+      "bathrooms": 2.5,
+      "square_footage": 2304,
+      "property_type": "",
+      "sold_date": "2026-02-25"
+    },
+    {
+      "address": "N4601 Sheehan Lake Ln",
+      "city": "Campbellsport",
+      "zip_code": "53010",
+      "sold_price": 633000,
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "square_footage": 2278,
+      "property_type": "",
+      "sold_date": "2026-02-20"
+    },
+    {
+      "address": "120.00AC County Road Ccc",
+      "city": "St Cloud",
+      "zip_code": "53079",
+      "sold_price": 1275000,
+      "bedrooms": null,
+      "bathrooms": null,
+      "square_footage": null,
+      "property_type": "",
+      "sold_date": "2026-02-23"
+    },
+    {
+      "address": "N4493 Sheehan Lake Ln Unit N4495",
+      "city": "Campbellsport",
+      "zip_code": "53010",
+      "sold_price": 430000,
+      "bedrooms": null,
+      "bathrooms": null,
+      "square_footage": null,
+      "property_type": "",
+      "sold_date": ""
+    },
+    {
+      "address": "Lt12 Red Oak",
+      "city": "Osceola",
+      "zip_code": "53010",
+      "sold_price": 58000,
+      "bedrooms": null,
+      "bathrooms": null,
+      "square_footage": null,
+      "property_type": "",
+      "sold_date": ""
+    },
+    {
+      "address": "Hwy Hh",
+      "city": "Malone",
+      "zip_code": "53409",
+      "sold_price": 55000,
+      "bedrooms": null,
+      "bathrooms": null,
+      "square_footage": null,
+      "property_type": "",
+      "sold_date": ""
+    },
+    {
+      "address": "Lot27 Hickory Dr",
+      "city": "Greenbush",
+      "zip_code": "53026",
+      "sold_price": null,
+      "bedrooms": null,
+      "bathrooms": null,
+      "square_footage": null,
+      "property_type": "",
+      "sold_date": ""
+    }
+  ],
+  "source": "Redfin Recently Sold"
+}
