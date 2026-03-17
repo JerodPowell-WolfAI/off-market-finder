@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Off-Market Property Finder | Wolf Intelligence</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0e17; color: #e0e0e0; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #0a0e17, #1a1f36); border-bottom: 1px solid #FF6B3533; padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { color: #FF6B35; font-size: 24px; }
+  .header .subtitle { color: #8892b0; font-size: 14px; }
+  .header .logo { display: flex; align-items: center; gap: 12px; }
+  .header .wolf-badge { background: #FF6B3522; border: 1px solid #FF6B3544; color: #FF6B35; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; padding: 0 40px; background: #0d1220; border-bottom: 1px solid #FF6B3522; }
+  .tab { padding: 12px 24px; color: #8892b0; cursor: pointer; font-size: 14px; font-weight: 600; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .tab:hover { color: #FF6B35; }
+  .tab.active { color: #FF6B35; border-bottom-color: #FF6B35; background: #FF6B3508; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Stats */
+  .stats-bar { display: flex; gap: 20px; padding: 20px 40px; background: #0d1220; border-bottom: 1px solid #FF6B3515; }
+  .stat-card { background: #131a2e; border: 1px solid #FF6B3522; border-radius: 8px; padding: 16px 24px; flex: 1; }
+  .stat-card .number { font-size: 32px; font-weight: 700; color: #FF6B35; }
+  .stat-card .label { font-size: 13px; color: #8892b0; margin-top: 4px; }
+
+  /* Controls */
+  .controls { padding: 20px 40px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .controls input, .controls select { background: #131a2e; border: 1px solid #FF6B3533; color: #e0e0e0; padding: 8px 16px; border-radius: 6px; font-size: 14px; }
+  .controls input:focus, .controls select:focus { outline: none; border-color: #FF6B35; }
+  .controls label { color: #8892b0; font-size: 13px; }
+  .btn { background: #FF6B35; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .btn:hover { background: #1a7ae0; }
+  .btn-outline { background: transparent; border: 1px solid #FF6B35; color: #FF6B35; }
+  .btn-outline:hover { background: #FF6B3522; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-green { background: #00c853; }
+  .btn-green:hover { background: #00a844; }
+  .btn-orange { background: #ff9900; }
+  .btn-orange:hover { background: #e68a00; }
+  .btn-red { background: #ff4444; border: none; }
+  .btn-red:hover { background: #cc3333; }
+
+  /* Table */
+  .table-container { padding: 0 40px 40px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th { background: #131a2e; color: #FF6B35; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: left; border-bottom: 2px solid #FF6B3533; position: sticky; top: 0; cursor: pointer; white-space: nowrap; }
+  th:hover { color: #FF8C5A; }
+  td { padding: 10px 12px; border-bottom: 1px solid #FF6B3511; font-size: 13px; }
+  tr:hover { background: #FF6B3508; }
+  tr.selected { background: #FF6B3515; border-left: 3px solid #FF6B35; }
+
+  .score-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; min-width: 40px; text-align: center; }
+  .score-high { background: #00c85333; color: #00c853; border: 1px solid #00c85344; }
+  .score-medium { background: #ff990033; color: #ff9900; border: 1px solid #ff990044; }
+  .score-low { background: #ff444433; color: #ff4444; border: 1px solid #ff444444; }
+
+  .status-badge { display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .status-new { background: #FF6B3522; color: #FF6B35; }
+  .status-contacted { background: #ff990022; color: #ff9900; }
+  .status-qualified { background: #00c85322; color: #00c853; }
+  .status-closed { background: #9c27b022; color: #ce93d8; }
+  .status-dead { background: #ff444422; color: #ff4444; }
+
+  .dnc-clear { color: #00c853; }
+  .dnc-listed { color: #ff4444; font-weight: 600; }
+  .equity-positive { color: #00c853; }
+  .equity-negative { color: #ff4444; }
+
+  /* Detail Panel */
+  .detail-panel { position: fixed; right: -480px; top: 0; width: 480px; height: 100vh; background: #0d1220; border-left: 1px solid #FF6B3533; padding: 0; overflow-y: auto; transition: right 0.3s ease; z-index: 1000; box-shadow: -4px 0 20px rgba(0,0,0,0.5); }
+  .detail-panel.open { right: 0; }
+  .detail-panel .panel-header { background: #131a2e; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #FF6B3522; position: sticky; top: 0; z-index: 1; }
+  .detail-panel .panel-header h2 { color: #FF6B35; font-size: 16px; }
+  .detail-panel .close-btn { background: none; border: none; color: #8892b0; font-size: 24px; cursor: pointer; }
+  .detail-panel .close-btn:hover { color: #ff4444; }
+  .panel-section { padding: 16px 20px; border-bottom: 1px solid #FF6B3511; }
+  .panel-section h3 { color: #FF6B35; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .panel-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+  .panel-row .lbl { color: #8892b0; }
+  .panel-row .val { color: #e0e0e0; font-weight: 500; }
+
+  /* Outreach Actions */
+  .outreach-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .action-btn { padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid; display: flex; align-items: center; gap: 6px; }
+  .action-call { background: #00c85315; border-color: #00c85344; color: #00c853; }
+  .action-mail { background: #FF6B3515; border-color: #FF6B3544; color: #FF6B35; }
+  .action-email { background: #ff990015; border-color: #ff990044; color: #ff9900; }
+  .action-skip { background: #ff444415; border-color: #ff444444; color: #ff4444; }
+  .action-btn:hover { opacity: 0.8; }
+
+  /* Notes */
+  .notes-area { width: 100%; background: #0a0e17; border: 1px solid #FF6B3522; border-radius: 6px; color: #e0e0e0; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 80px; margin-top: 8px; }
+  .notes-area:focus { outline: none; border-color: #FF6B35; }
+  .note-entry { padding: 8px 0; border-bottom: 1px solid #FF6B3511; font-size: 12px; }
+  .note-entry .note-date { color: #FF6B35; font-size: 11px; }
+  .note-entry .note-text { color: #ccc; margin-top: 2px; }
+
+  /* Mail Template */
+  .mail-preview { background: #0a0e17; border: 1px solid #FF6B3522; border-radius: 8px; padding: 16px; margin-top: 10px; font-size: 13px; line-height: 1.6; color: #ccc; }
+  .mail-preview .mail-field { color: #FF6B35; font-weight: 600; }
+
+  /* Pipeline Stats */
+  .pipeline-bar { display: flex; gap: 0; padding: 0 40px; margin: 20px 0; }
+  .pipeline-stage { flex: 1; padding: 12px 16px; text-align: center; position: relative; }
+  .pipeline-stage .stage-count { font-size: 28px; font-weight: 700; }
+  .pipeline-stage .stage-label { font-size: 11px; text-transform: uppercase; margin-top: 4px; }
+  .pipeline-new { background: #FF6B3515; color: #FF6B35; border: 1px solid #FF6B3533; border-radius: 8px 0 0 8px; }
+  .pipeline-contacted { background: #ff990015; color: #ff9900; border: 1px solid #ff990033; }
+  .pipeline-qualified { background: #00c85315; color: #00c853; border: 1px solid #00c85333; }
+  .pipeline-closed { background: #9c27b015; color: #ce93d8; border: 1px solid #9c27b033; border-radius: 0 8px 8px 0; }
+
+  .footer { padding: 20px 40px; text-align: center; color: #555; font-size: 12px; border-top: 1px solid #FF6B3511; }
+  .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+  .overlay.open { display: block; }
+
+  @media (max-width: 768px) {
+    .stats-bar { flex-direction: column; }
+    .controls { flex-direction: column; }
+    .header { flex-direction: column; gap: 8px; }
+    .detail-panel { width: 100%; right: -100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <h1>Off-Market Property Finder</h1>
+    <span class="wolf-badge">Wolf Intelligence</span>
+  </div>
+  <div class="subtitle" id="lastUpdated">Loading data...</div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('properties')">Properties</div>
+  <div class="tab" onclick="switchTab('pipeline')">Lead Pipeline</div>
+  <div class="tab" onclick="switchTab('outreach')">Outreach Queue</div>
+</div>
+
+<!-- PROPERTIES TAB -->
+<div id="tab-properties" class="tab-content active">
+
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="number" id="totalCount">--</div>
+    <div class="label">Total Properties</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" id="highOpportunity">--</div>
+    <div class="label">High Opportunity (40+)</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" id="avgEquity">--</div>
+    <div class="label">Avg Equity %</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" id="longTermCount">--</div>
+    <div class="label">Long-Term Owners (10+ yr)</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" id="dncClearCount">--</div>
+    <div class="label">DNC Clear</div>
+  </div>
+</div>
+
+<div class="controls">
+  <label>Filter:</label>
+  <select id="filterScore">
+    <option value="0">All Scores</option>
+    <option value="30">Score 30+</option>
+    <option value="40">Score 40+</option>
+    <option value="50">Score 50+</option>
+    <option value="60">Score 60+</option>
+  </select>
+  <select id="filterCity">
+    <option value="">All Cities</option>
+  </select>
+  <select id="filterZip">
+    <option value="">All Zip Codes</option>
+  </select>
+  <select id="filterType">
+    <option value="">All Types</option>
+  </select>
+  <select id="filterStatus">
+    <option value="">All Statuses</option>
+    <option value="New">New</option>
+    <option value="Contacted">Contacted</option>
+    <option value="Qualified">Qualified</option>
+    <option value="Dead">Dead</option>
+  </select>
+  <input type="text" id="searchInput" placeholder="Search address, city, neighborhood...">
+  <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
+  <button class="btn btn-outline" onclick="exportMailMerge()">Mail Merge Export</button>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="sortBy('opportunity_score')">Score</th>
+        <th>Status</th>
+        <th onclick="sortBy('address')">Address</th>
+        <th onclick="sortBy('city')">City</th>
+        <th onclick="sortBy('zip_code')">Zip</th>
+        <th onclick="sortBy('price')">Price</th>
+        <th onclick="sortBy('tax_assessed_value')">Assessed</th>
+        <th onclick="sortBy('estimated_equity')">Equity</th>
+        <th onclick="sortBy('property_type')">Type</th>
+        <th onclick="sortBy('bedrooms')">Bed/Ba</th>
+        <th onclick="sortBy('square_footage')">Sq Ft</th>
+        <th onclick="sortBy('year_built')">Built</th>
+        <th>DNC</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="propertyTable"></tbody>
+  </table>
+</div>
+</div>
+
+<!-- PIPELINE TAB -->
+<div id="tab-pipeline" class="tab-content">
+  <div class="pipeline-bar">
+    <div class="pipeline-stage pipeline-new">
+      <div class="stage-count" id="pipeNew">0</div>
+      <div class="stage-label">New Leads</div>
+    </div>
+    <div class="pipeline-stage pipeline-contacted">
+      <div class="stage-count" id="pipeContacted">0</div>
+      <div class="stage-label">Contacted</div>
+    </div>
+    <div class="pipeline-stage pipeline-qualified">
+      <div class="stage-count" id="pipeQualified">0</div>
+      <div class="stage-label">Qualified</div>
+    </div>
+    <div class="pipeline-stage pipeline-closed">
+      <div class="stage-count" id="pipeClosed">0</div>
+      <div class="stage-label">Closed</div>
+    </div>
+  </div>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Address</th>
+          <th>City</th>
+          <th>Score</th>
+          <th>Price</th>
+          <th>Last Contact</th>
+          <th>Notes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="pipelineTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- OUTREACH TAB -->
+<div id="tab-outreach" class="tab-content">
+  <div style="padding: 20px 40px;">
+    <h2 style="color: #FF6B35; margin-bottom: 16px;">Outreach Queue</h2>
+    <p style="color: #8892b0; margin-bottom: 20px;">Properties scored 30+ that haven't been contacted yet. Click to generate outreach materials.</p>
+    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+      <button class="btn" onclick="generateCallList()">Generate Call List</button>
+      <button class="btn btn-outline" onclick="generateMailList()">Generate Direct Mail List</button>
+      <button class="btn btn-outline" onclick="generateEmailDraft()">Draft Cold Emails</button>
+    </div>
+  </div>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Priority</th>
+          <th>Address</th>
+          <th>City / Zip</th>
+          <th>Score</th>
+          <th>Price</th>
+          <th>Why This Lead</th>
+          <th>Suggested Approach</th>
+        </tr>
+      </thead>
+      <tbody id="outreachTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Detail Panel -->
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="panel-header">
+    <h2 id="panelAddress">Property Details</h2>
+    <button class="close-btn" onclick="closePanel()">&times;</button>
+  </div>
+  <div id="panelContent"></div>
+</div>
+
+<div class="footer">
+  Off-Market Property Finder by Wolf Intelligence | Data sourced from public records | DNC compliance automated
+</div>
+
+<script>
+let allProperties = [];
+let leadStatuses = {};
+let leadNotes = {};
+let currentSort = { field: 'opportunity_score', asc: false };
+
+// Load saved lead data from localStorage
+function loadLeadData() {
+  try {
+    leadStatuses = JSON.parse(localStorage.getItem('wolf_lead_statuses') || '{}');
+    leadNotes = JSON.parse(localStorage.getItem('wolf_lead_notes') || '{}');
+  } catch(e) { leadStatuses = {}; leadNotes = {}; }
+}
+
+function saveLeadData() {
+  localStorage.setItem('wolf_lead_statuses', JSON.stringify(leadStatuses));
+  localStorage.setItem('wolf_lead_notes', JSON.stringify(leadNotes));
+}
+
+function getLeadKey(p) { return (p.address || '').trim(); }
+
+async function loadData() {
+  loadLeadData();
+  const files = ['off_market_properties_demo.json', 'off_market_properties.json'];
+  for (const file of files) {
+    try {
+      const resp = await fetch(file);
+      if (resp.ok) {
+        const data = await resp.json();
+        allProperties = data.properties || [];
+
+        // Set default status
+        allProperties.forEach(p => {
+          const key = getLeadKey(p);
+          if (!leadStatuses[key]) leadStatuses[key] = 'New';
+        });
+
+        document.getElementById('lastUpdated').textContent =
+          `Last updated: ${new Date(data.generated).toLocaleString()} | ${data.total_properties} properties | ${data.source || 'Public Records'}`;
+
+        // Populate filters
+        populateFilter('filterZip', 'zip_code');
+        populateFilter('filterCity', 'city');
+        populateFilter('filterType', 'property_type');
+
+        updateStats();
+        renderTable();
+        return;
+      }
+    } catch (e) { continue; }
+  }
+}
+
+function populateFilter(elementId, field) {
+  const values = [...new Set(allProperties.map(p => p[field]).filter(Boolean))].sort();
+  const select = document.getElementById(elementId);
+  values.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    select.appendChild(opt);
+  });
+}
+
+function updateStats() {
+  const filtered = getFiltered();
+  document.getElementById('totalCount').textContent = filtered.length;
+  document.getElementById('highOpportunity').textContent = filtered.filter(p => (p.opportunity_score || 0) >= 40).length;
+  document.getElementById('longTermCount').textContent = filtered.filter(p => (p.years_owned || 0) >= 10).length;
+  document.getElementById('dncClearCount').textContent = filtered.filter(p => p.dnc_status === 'Clear' || !p.dnc_status).length;
+
+  const equities = filtered.map(p => p.equity_percentage).filter(v => v != null && v > 0);
+  const avgEq = equities.length ? (equities.reduce((a,b) => a+b, 0) / equities.length).toFixed(0) + '%' : '--';
+  document.getElementById('avgEquity').textContent = avgEq;
+}
+
+function getFiltered() {
+  const minScore = parseInt(document.getElementById('filterScore').value) || 0;
+  const cityFilter = document.getElementById('filterCity').value;
+  const zipFilter = document.getElementById('filterZip').value;
+  const typeFilter = document.getElementById('filterType').value;
+  const statusFilter = document.getElementById('filterStatus').value;
+  const search = document.getElementById('searchInput').value.toLowerCase();
+
+  return allProperties.filter(p => {
+    if ((p.opportunity_score || 0) < minScore) return false;
+    if (cityFilter && p.city !== cityFilter) return false;
+    if (zipFilter && p.zip_code !== zipFilter) return false;
+    if (typeFilter && p.property_type !== typeFilter) return false;
+    if (statusFilter && leadStatuses[getLeadKey(p)] !== statusFilter) return false;
+    if (search) {
+      const searchFields = [p.address, p.city, p.zip_code, p.neighborhood, p.property_type, p.opportunity_reasons].map(f => (f||'').toLowerCase()).join(' ');
+      if (!searchFields.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function sortBy(field) {
+  if (currentSort.field === field) currentSort.asc = !currentSort.asc;
+  else { currentSort.field = field; currentSort.asc = false; }
+  renderTable();
+}
+
+function renderTable() {
+  let data = getFiltered();
+  const { field, asc } = currentSort;
+  data.sort((a, b) => {
+    let va = a[field], vb = b[field];
+    if (typeof va === 'number' && typeof vb === 'number') return asc ? va - vb : vb - va;
+    va = String(va || ''); vb = String(vb || '');
+    return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+
+  const tbody = document.getElementById('propertyTable');
+  tbody.innerHTML = data.map((p, idx) => {
+    const scoreClass = (p.opportunity_score || 0) >= 60 ? 'score-high' : (p.opportunity_score || 0) >= 30 ? 'score-medium' : 'score-low';
+    const status = leadStatuses[getLeadKey(p)] || 'New';
+    const statusClass = 'status-' + status.toLowerCase();
+    const equityClass = (p.estimated_equity || 0) >= 0 ? 'equity-positive' : 'equity-negative';
+    const dncClass = p.dnc_status === 'DNC Listed' ? 'dnc-listed' : 'dnc-clear';
+
+    return `<tr onclick="openDetail(${idx})" style="cursor:pointer;">
+      <td><span class="score-badge ${scoreClass}">${p.opportunity_score || 0}</span></td>
+      <td><span class="status-badge ${statusClass}">${status}</span></td>
+      <td>${p.address || '-'}</td>
+      <td>${p.city || '-'}</td>
+      <td>${p.zip_code || '-'}</td>
+      <td>${p.price ? '$' + p.price.toLocaleString() : '-'}</td>
+      <td>${p.tax_assessed_value ? '$' + p.tax_assessed_value.toLocaleString() : p.assessed_value ? '$' + p.assessed_value.toLocaleString() : '-'}</td>
+      <td class="${equityClass}">${p.equity_percentage ? p.equity_percentage + '%' : '-'}</td>
+      <td>${p.property_type || '-'}</td>
+      <td>${p.bedrooms || '-'}/${p.bathrooms || '-'}</td>
+      <td>${p.square_footage ? p.square_footage.toLocaleString() : '-'}</td>
+      <td>${p.year_built || '-'}</td>
+      <td class="${dncClass}">${p.dnc_status || 'Clear'}</td>
+      <td>
+        <button class="btn btn-sm btn-green" onclick="event.stopPropagation(); setStatus('${getLeadKey(p)}', 'Contacted')">Contact</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  updateStats();
+  updatePipeline();
+}
+
+// Detail Panel
+let currentDetailIdx = -1;
+
+function openDetail(idx) {
+  const data = getFiltered();
+  const p = data[idx];
+  if (!p) return;
+  currentDetailIdx = idx;
+
+  document.getElementById('panelAddress').textContent = p.address || 'Property Details';
+  const key = getLeadKey(p);
+  const status = leadStatuses[key] || 'New';
+  const notes = leadNotes[key] || [];
+
+  document.getElementById('panelContent').innerHTML = `
+    <div class="panel-section">
+      <h3>Property Overview</h3>
+      <div class="panel-row"><span class="lbl">Address</span><span class="val">${p.address || '-'}, ${p.city || ''}, ${p.state || 'WA'} ${p.zip_code || ''}</span></div>
+      <div class="panel-row"><span class="lbl">Neighborhood</span><span class="val">${p.neighborhood || '-'}</span></div>
+      <div class="panel-row"><span class="lbl">Type</span><span class="val">${p.property_type || '-'}</span></div>
+      <div class="panel-row"><span class="lbl">Beds / Baths</span><span class="val">${p.bedrooms || '-'} / ${p.bathrooms || '-'}</span></div>
+      <div class="panel-row"><span class="lbl">Square Footage</span><span class="val">${p.square_footage ? p.square_footage.toLocaleString() + ' sqft' : '-'}</span></div>
+      <div class="panel-row"><span class="lbl">Lot Size</span><span class="val">${p.lot_size || '-'}</span></div>
+      <div class="panel-row"><span class="lbl">Year Built</span><span class="val">${p.year_built || '-'}</span></div>
+      <div class="panel-row"><span class="lbl">Walk Score</span><span class="val">${p.walk_score || '-'}</span></div>
+    </div>
+
+    <div class="panel-section">
+      <h3>Valuation & Equity</h3>
+      <div class="panel-row"><span class="lbl">Listed/Sold Price</span><span class="val" style="color:#FF6B35;font-size:16px;">${p.price ? '$' + p.price.toLocaleString() : '-'}</span></div>
+      <div class="panel-row"><span class="lbl">Tax Assessed</span><span class="val">${(p.tax_assessed_value || p.assessed_value) ? '$' + (p.tax_assessed_value || p.assessed_value).toLocaleString() : '-'}</span></div>
+      <div class="panel-row"><span class="lbl">Annual Tax</span><span class="val">${p.annual_tax ? '$' + p.annual_tax.toLocaleString() : '-'}</span></div>
+      <div class="panel-row"><span class="lbl">Last Sale</span><span class="val">${p.last_sale_date || '-'} ${p.last_sale_price ? '@ $' + p.last_sale_price.toLocaleString() : ''}</span></div>
+      <div class="panel-row"><span class="lbl">Previous Sale</span><span class="val">${p.previous_sale_date || '-'} ${p.previous_sale_price ? '@ $' + p.previous_sale_price.toLocaleString() : ''}</span></div>
+      <div class="panel-row"><span class="lbl">Est. Equity</span><span class="val ${(p.estimated_equity||0) >= 0 ? 'equity-positive' : 'equity-negative'}">${p.estimated_equity ? '$' + p.estimated_equity.toLocaleString() + ' (' + (p.equity_percentage||0) + '%)' : '-'}</span></div>
+      <div class="panel-row"><span class="lbl">HOA Dues</span><span class="val">${p.hoa_dues ? '$' + p.hoa_dues.toLocaleString() + '/mo' : 'None'}</span></div>
+    </div>
+
+    <div class="panel-section">
+      <h3>Opportunity Score: <span class="score-badge ${(p.opportunity_score||0) >= 60 ? 'score-high' : (p.opportunity_score||0) >= 30 ? 'score-medium' : 'score-low'}">${p.opportunity_score || 0}</span></h3>
+      <div style="color:#8892b0;font-size:13px;margin-top:8px;">${p.opportunity_reasons || '-'}</div>
+      <div class="panel-row" style="margin-top:8px;"><span class="lbl">DNC Status</span><span class="val ${p.dnc_status === 'DNC Listed' ? 'dnc-listed' : 'dnc-clear'}">${p.dnc_status || 'Clear'}</span></div>
+    </div>
+
+    <div class="panel-section">
+      <h3>Lead Status</h3>
+      <select id="panelStatus" onchange="setStatus('${key}', this.value)" style="background:#0a0e17;border:1px solid #FF6B3533;color:#e0e0e0;padding:8px 16px;border-radius:6px;font-size:14px;width:100%;">
+        <option value="New" ${status==='New'?'selected':''}>New</option>
+        <option value="Contacted" ${status==='Contacted'?'selected':''}>Contacted</option>
+        <option value="Qualified" ${status==='Qualified'?'selected':''}>Qualified</option>
+        <option value="Closed" ${status==='Closed'?'selected':''}>Closed</option>
+        <option value="Dead" ${status==='Dead'?'selected':''}>Dead</option>
+      </select>
+    </div>
+
+    <div class="panel-section">
+      <h3>Outreach Actions</h3>
+      <div class="outreach-actions">
+        <button class="action-btn action-call" onclick="logAction('${key}', 'Phone call')">&#9742; Call</button>
+        <button class="action-btn action-mail" onclick="generateDirectMail('${key}')">&#9993; Direct Mail</button>
+        <button class="action-btn action-email" onclick="logAction('${key}', 'Email sent')">&#9993; Email</button>
+        <button class="action-btn action-skip" onclick="setStatus('${key}', 'Dead')">&#10005; Skip</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h3>Notes & Activity</h3>
+      <textarea class="notes-area" id="noteInput" placeholder="Add a note..."></textarea>
+      <button class="btn btn-sm" onclick="addNote('${key}')" style="margin-top:8px;">Add Note</button>
+      <div id="notesList" style="margin-top:12px;">
+        ${notes.map(n => `<div class="note-entry"><span class="note-date">${n.date}</span> <span style="color:#FF6B35;font-size:11px;">[${n.type || 'note'}]</span><div class="note-text">${n.text}</div></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="panel-section" id="mailPreview" style="display:none;">
+      <h3>Direct Mail Preview</h3>
+      <div class="mail-preview" id="mailContent"></div>
+      <button class="btn btn-sm btn-outline" onclick="copyMail()" style="margin-top:8px;">Copy to Clipboard</button>
+    </div>
+  `;
+
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function setStatus(key, status) {
+  leadStatuses[key] = status;
+  saveLeadData();
+  renderTable();
+  if (document.getElementById('panelStatus')) {
+    document.getElementById('panelStatus').value = status;
+  }
+}
+
+function addNote(key) {
+  const input = document.getElementById('noteInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!leadNotes[key]) leadNotes[key] = [];
+  leadNotes[key].unshift({
+    date: new Date().toLocaleString(),
+    text: text,
+    type: 'note'
+  });
+  saveLeadData();
+  input.value = '';
+  if (currentDetailIdx >= 0) openDetail(currentDetailIdx);
+}
+
+function logAction(key, actionType) {
+  if (!leadNotes[key]) leadNotes[key] = [];
+  leadNotes[key].unshift({
+    date: new Date().toLocaleString(),
+    text: actionType,
+    type: 'action'
+  });
+  if (leadStatuses[key] === 'New') {
+    leadStatuses[key] = 'Contacted';
+  }
+  saveLeadData();
+  renderTable();
+  if (currentDetailIdx >= 0) openDetail(currentDetailIdx);
+}
+
+function generateDirectMail(key) {
+  const p = allProperties.find(prop => getLeadKey(prop) === key);
+  if (!p) return;
+
+  const mailContent = `
+    <div class="mail-field">TO:</div>
+    <div>Current Resident / Property Owner</div>
+    <div>${p.address || ''}</div>
+    <div>${p.city || ''}, ${p.state || 'WA'} ${p.zip_code || ''}</div>
+    <br>
+    <div class="mail-field">FROM:</div>
+    <div>[Agent Name]</div>
+    <div>[Brokerage Name]</div>
+    <br>
+    <div class="mail-field">SUBJECT: Your Property at ${p.address}</div>
+    <br>
+    <div>Dear Property Owner,</div>
+    <br>
+    <div>I'm reaching out because I specialize in the ${p.neighborhood || p.city || 'local'} area and have buyers actively looking for properties like yours.</div>
+    <br>
+    <div>Your home at <strong>${p.address}</strong> ${p.year_built ? '(built ' + p.year_built + ')' : ''} is exactly what several of my qualified buyers are searching for. Based on recent comparable sales in ${p.zip_code || 'your area'}, properties like yours ${p.price ? 'are valued around <strong>$' + p.price.toLocaleString() + '</strong>' : 'have seen significant appreciation'}.</div>
+    <br>
+    ${p.equity_percentage && p.equity_percentage > 40 ? '<div>With the substantial equity you\'ve built, now could be an excellent time to explore your options — whether that\'s selling, upgrading, or leveraging your equity for investment.</div><br>' : ''}
+    <div>I'd love to provide you with a <strong>free, no-obligation market analysis</strong> of your property. Even if you're not considering selling today, it's valuable to know what your home is worth in today's market.</div>
+    <br>
+    <div>Would you be open to a brief conversation? You can reach me at:</div>
+    <div>Phone: [Your Phone]</div>
+    <div>Email: [Your Email]</div>
+    <br>
+    <div>Best regards,</div>
+    <div>[Agent Name]</div>
+    <div>[License #]</div>
+  `;
+
+  document.getElementById('mailContent').innerHTML = mailContent;
+  document.getElementById('mailPreview').style.display = 'block';
+
+  logAction(key, 'Direct mail generated');
+}
+
+function copyMail() {
+  const el = document.getElementById('mailContent');
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => alert('Mail content copied to clipboard!'));
+}
+
+// Tab switching
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab:nth-child(${tab==='properties'?1:tab==='pipeline'?2:3})`).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+
+  if (tab === 'pipeline') renderPipeline();
+  if (tab === 'outreach') renderOutreach();
+}
+
+// Pipeline tab
+function updatePipeline() {
+  const counts = { New: 0, Contacted: 0, Qualified: 0, Closed: 0 };
+  allProperties.forEach(p => {
+    const s = leadStatuses[getLeadKey(p)] || 'New';
+    if (counts[s] !== undefined) counts[s]++;
+  });
+  document.getElementById('pipeNew').textContent = counts.New;
+  document.getElementById('pipeContacted').textContent = counts.Contacted;
+  document.getElementById('pipeQualified').textContent = counts.Qualified;
+  document.getElementById('pipeClosed').textContent = counts.Closed;
+}
+
+function renderPipeline() {
+  updatePipeline();
+  const contacted = allProperties.filter(p => ['Contacted','Qualified','Closed'].includes(leadStatuses[getLeadKey(p)]));
+  contacted.sort((a,b) => {
+    const order = { Qualified: 0, Contacted: 1, Closed: 2 };
+    return (order[leadStatuses[getLeadKey(a)]] || 9) - (order[leadStatuses[getLeadKey(b)]] || 9);
+  });
+
+  document.getElementById('pipelineTable').innerHTML = contacted.map(p => {
+    const key = getLeadKey(p);
+    const status = leadStatuses[key] || 'New';
+    const statusClass = 'status-' + status.toLowerCase();
+    const notes = leadNotes[key] || [];
+    const lastNote = notes[0];
+    return `<tr onclick="openDetailByKey('${key}')" style="cursor:pointer;">
+      <td><span class="status-badge ${statusClass}">${status}</span></td>
+      <td>${p.address || '-'}</td>
+      <td>${p.city || '-'}</td>
+      <td><span class="score-badge ${(p.opportunity_score||0) >= 60 ? 'score-high' : 'score-medium'}">${p.opportunity_score || 0}</span></td>
+      <td>${p.price ? '$' + p.price.toLocaleString() : '-'}</td>
+      <td style="font-size:12px;color:#8892b0;">${lastNote ? lastNote.date : '-'}</td>
+      <td style="font-size:12px;color:#8892b0;max-width:200px;">${lastNote ? lastNote.text : '-'}</td>
+      <td>
+        <select onchange="event.stopPropagation(); setStatus('${key}', this.value)" style="background:#0a0e17;border:1px solid #FF6B3533;color:#e0e0e0;padding:4px 8px;border-radius:4px;font-size:12px;">
+          <option value="Contacted" ${status==='Contacted'?'selected':''}>Contacted</option>
+          <option value="Qualified" ${status==='Qualified'?'selected':''}>Qualified</option>
+          <option value="Closed" ${status==='Closed'?'selected':''}>Closed</option>
+          <option value="Dead" ${status==='Dead'?'selected':''}>Dead</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:40px;color:#8892b0;">No leads in pipeline yet. Click "Contact" on any property to start.</td></tr>';
+}
+
+function openDetailByKey(key) {
+  const idx = allProperties.findIndex(p => getLeadKey(p) === key);
+  if (idx >= 0) openDetail(idx);
+}
+
+// Outreach tab
+function renderOutreach() {
+  const queue = allProperties
+    .filter(p => (p.opportunity_score || 0) >= 30 && leadStatuses[getLeadKey(p)] === 'New')
+    .sort((a, b) => (b.opportunity_score || 0) - (a.opportunity_score || 0));
+
+  document.getElementById('outreachTable').innerHTML = queue.map((p, i) => {
+    const approach = getSuggestedApproach(p);
+    return `<tr onclick="openDetailByKey('${getLeadKey(p)}')" style="cursor:pointer;">
+      <td style="color:#FF6B35;font-weight:700;">#${i + 1}</td>
+      <td>${p.address || '-'}</td>
+      <td>${p.city || '-'} ${p.zip_code || ''}</td>
+      <td><span class="score-badge ${(p.opportunity_score||0) >= 60 ? 'score-high' : 'score-medium'}">${p.opportunity_score || 0}</span></td>
+      <td>${p.price ? '$' + p.price.toLocaleString() : '-'}</td>
+      <td style="font-size:12px;color:#8892b0;max-width:250px;">${p.opportunity_reasons || '-'}</td>
+      <td style="font-size:12px;color:#00c853;">${approach}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;padding:40px;color:#8892b0;">No properties in outreach queue. Lower score filter or add more data.</td></tr>';
+}
+
+function getSuggestedApproach(p) {
+  if (p.years_owned && p.years_owned >= 15) return 'Direct mail + phone (long-term owner, likely has equity)';
+  if (p.equity_percentage && p.equity_percentage >= 50) return 'Direct mail (highlight equity position)';
+  if (p.tax_assessed_value && p.price && p.tax_assessed_value > p.price) return 'Phone call (below-market opportunity)';
+  if (p.year_built && p.year_built < 1960) return 'Direct mail (older home, potential renovation buyer)';
+  return 'Cold outreach (standard approach)';
+}
+
+// Export functions
+function exportCSV() {
+  const data = getFiltered();
+  const headers = ['Score','Status','Address','City','Zip','Price','Assessed','Equity%','Type','Beds','Baths','SqFt','Year Built','DNC','Reasons','Neighborhood'];
+  const rows = data.map(p => [
+    p.opportunity_score, leadStatuses[getLeadKey(p)] || 'New', p.address, p.city, p.zip_code, p.price,
+    p.tax_assessed_value || p.assessed_value, p.equity_percentage,
+    p.property_type, p.bedrooms, p.bathrooms, p.square_footage, p.year_built,
+    p.dnc_status || 'Clear', p.opportunity_reasons, p.neighborhood
+  ]);
+  downloadCSV([headers, ...rows], 'off_market_properties.csv');
+}
+
+function exportMailMerge() {
+  const data = getFiltered().filter(p => (p.opportunity_score || 0) >= 30);
+  const headers = ['Address','City','State','Zip','Price','Assessed Value','Year Built','Type','Beds','Baths','SqFt','Equity%','Score','Approach'];
+  const rows = data.map(p => [
+    p.address, p.city, p.state || 'WA', p.zip_code, p.price,
+    p.tax_assessed_value || p.assessed_value, p.year_built, p.property_type,
+    p.bedrooms, p.bathrooms, p.square_footage, p.equity_percentage,
+    p.opportunity_score, getSuggestedApproach(p)
+  ]);
+  downloadCSV([headers, ...rows], 'mail_merge_list.csv');
+}
+
+function downloadCSV(data, filename) {
+  const csv = data.map(r => r.map(v => `"${v != null ? v : ''}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+function generateCallList() {
+  const queue = allProperties
+    .filter(p => (p.opportunity_score || 0) >= 30 && leadStatuses[getLeadKey(p)] === 'New')
+    .sort((a, b) => (b.opportunity_score || 0) - (a.opportunity_score || 0));
+
+  const headers = ['Priority','Address','City','Zip','Score','Price','Call Script Notes'];
+  const rows = queue.map((p, i) => [
+    i + 1, p.address, p.city, p.zip_code, p.opportunity_score, p.price,
+    `Hi, I'm calling about your property at ${p.address}. I work with buyers looking in ${p.neighborhood || p.city || 'the area'} and wondered if you'd be open to a conversation about your home's current value.`
+  ]);
+  downloadCSV([headers, ...rows], 'call_list.csv');
+  alert(`Call list exported: ${queue.length} leads`);
+}
+
+function generateMailList() {
+  exportMailMerge();
+  alert('Mail merge list exported for direct mail campaign');
+}
+
+function generateEmailDraft() {
+  const queue = allProperties
+    .filter(p => (p.opportunity_score || 0) >= 30 && leadStatuses[getLeadKey(p)] === 'New')
+    .sort((a, b) => (b.opportunity_score || 0) - (a.opportunity_score || 0));
+
+  const headers = ['Address','City','Zip','Subject Line','Email Body'];
+  const rows = queue.map(p => [
+    p.address, p.city, p.zip_code,
+    `Your property at ${p.address} - Quick question`,
+    `Hi,\n\nI'm a real estate professional specializing in ${p.neighborhood || p.city || 'your area'}. I have qualified buyers actively searching for properties like yours at ${p.address}.\n\nBased on recent market data, homes in ${p.zip_code} ${p.price ? 'are moving around $' + p.price.toLocaleString() : 'have seen strong appreciation'}. I'd love to share a complimentary market analysis with you.\n\nWould you be open to a quick 5-minute call?\n\nBest regards,\n[Your Name]`
+  ]);
+  downloadCSV([headers, ...rows], 'email_drafts.csv');
+  alert(`Email drafts exported: ${queue.length} leads`);
+}
+
+// Event listeners
+['filterScore','filterCity','filterZip','filterType','filterStatus'].forEach(id => {
+  document.getElementById(id).addEventListener('change', renderTable);
+});
+document.getElementById('searchInput').addEventListener('input', renderTable);
+
+// Load
+loadData();
+</script>
+</body>
+</html>
